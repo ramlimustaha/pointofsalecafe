@@ -2,101 +2,115 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS Cafe Simple</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POS Cafe Responsive</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Load html2pdf untuk Struk PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Fix for Safari iOS height issue */
+        .h-dvh { height: 100vh; height: 100dvh; }
     </style>
 </head>
-<body class="bg-[#FDFBF7] flex h-screen overflow-hidden text-[#332C27] font-sans">
+<body class="bg-[#FDFBF7] flex flex-col md:flex-row h-dvh overflow-hidden text-[#332C27] font-sans">
 
-    <!-- Sidebar -->
-    <div class="w-64 bg-stone-800 text-stone-100 flex flex-col shadow-xl z-10">
-        <div class="h-20 flex items-center justify-center border-b border-stone-700">
+    <!-- Top Header (Mobile Only) -->
+    <div class="md:hidden bg-stone-800 text-stone-100 h-14 flex items-center justify-center shrink-0 shadow-md z-20">
+        <h2 class="text-lg font-bold tracking-wider"><i class="fas fa-coffee mr-2 text-amber-500"></i>POS CAFE</h2>
+    </div>
+
+    <!-- Sidebar / Bottom Nav -->
+    <div class="bg-stone-800 text-stone-100 flex flex-row md:flex-col shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-xl z-20 fixed bottom-0 w-full h-16 md:static md:w-64 md:h-full shrink-0">
+        <div class="hidden md:flex h-20 items-center justify-center border-b border-stone-700 shrink-0">
             <h2 class="text-2xl font-bold tracking-wider"><i class="fas fa-coffee mr-2 text-amber-500"></i>POS CAFE</h2>
         </div>
-        <nav class="flex-1 p-4 space-y-3 mt-4">
-            <button onclick="nav('pos')" class="w-full text-left py-3 px-4 rounded-lg hover:bg-stone-700 transition flex items-center gap-3 font-medium">
-                <i class="fas fa-cash-register w-5 text-center text-amber-500"></i> Kasir (POS)
+        <nav class="flex-1 flex flex-row md:flex-col px-2 md:p-4 gap-1 md:gap-3 md:mt-4 overflow-x-auto overflow-y-hidden justify-around items-center md:items-stretch">
+            <button onclick="nav('pos')" class="flex-1 md:w-full flex flex-col md:flex-row items-center justify-center md:justify-start py-1 md:py-3 px-1 md:px-4 rounded-lg hover:bg-stone-700 transition gap-1 md:gap-3 font-medium text-[10px] md:text-base">
+                <i class="fas fa-cash-register text-lg md:text-xl text-amber-500 md:w-6 md:text-center"></i> <span class="whitespace-nowrap">Kasir (POS)</span>
             </button>
-            <button onclick="nav('menu')" class="w-full text-left py-3 px-4 rounded-lg hover:bg-stone-700 transition flex items-center gap-3 font-medium">
-                <i class="fas fa-box w-5 text-center text-amber-500"></i> Manajemen Menu
+            <button onclick="nav('menu')" class="flex-1 md:w-full flex flex-col md:flex-row items-center justify-center md:justify-start py-1 md:py-3 px-1 md:px-4 rounded-lg hover:bg-stone-700 transition gap-1 md:gap-3 font-medium text-[10px] md:text-base">
+                <i class="fas fa-box text-lg md:text-xl text-amber-500 md:w-6 md:text-center"></i> <span class="whitespace-nowrap">Menu</span>
             </button>
-            <button onclick="nav('finance')" class="w-full text-left py-3 px-4 rounded-lg hover:bg-stone-700 transition flex items-center gap-3 font-medium">
-                <i class="fas fa-chart-line w-5 text-center text-amber-500"></i> Keuangan
+            <button onclick="nav('finance')" class="flex-1 md:w-full flex flex-col md:flex-row items-center justify-center md:justify-start py-1 md:py-3 px-1 md:px-4 rounded-lg hover:bg-stone-700 transition gap-1 md:gap-3 font-medium text-[10px] md:text-base">
+                <i class="fas fa-chart-line text-lg md:text-xl text-amber-500 md:w-6 md:text-center"></i> <span class="whitespace-nowrap">Keuangan</span>
             </button>
-            <button onclick="nav('ai')" class="w-full text-left py-3 px-4 rounded-lg hover:bg-stone-700 transition flex items-center gap-3 font-medium">
-                <i class="fas fa-robot w-5 text-center text-amber-500"></i> Tanya AI
+            <button onclick="nav('ai')" class="flex-1 md:w-full flex flex-col md:flex-row items-center justify-center md:justify-start py-1 md:py-3 px-1 md:px-4 rounded-lg hover:bg-stone-700 transition gap-1 md:gap-3 font-medium text-[10px] md:text-base">
+                <i class="fas fa-robot text-lg md:text-xl text-amber-500 md:w-6 md:text-center"></i> <span class="whitespace-nowrap">Tanya AI</span>
             </button>
         </nav>
-        <div class="p-4 border-t border-stone-700 text-xs text-center text-stone-400">
-            Sistem Sederhana V2.2
+        <div class="hidden md:block p-4 border-t border-stone-700 text-xs text-center text-stone-400">
+            Sistem Sederhana V3.0
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col relative bg-[#FDFBF7]">
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col relative bg-[#FDFBF7] mb-16 md:mb-0 overflow-hidden">
         
         <!-- Global Loader -->
         <div id="loader" class="absolute inset-0 bg-white/80 z-50 flex items-center justify-center hidden">
             <div class="flex flex-col items-center">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-[#D97757]"></div>
-                <p class="mt-4 text-[#D97757] font-medium">Memuat data...</p>
+                <p class="mt-4 text-[#D97757] font-medium font-bold">Memproses...</p>
             </div>
         </div>
 
         <!-- VIEW: POS -->
-        <div id="view-pos" class="flex-1 flex h-full p-6 gap-6 hidden">
+        <div id="view-pos" class="flex-1 flex flex-col lg:flex-row h-full p-3 lg:p-6 gap-4 lg:gap-6 hidden overflow-y-auto lg:overflow-hidden">
             <!-- Menu Grid -->
-            <div class="flex-1 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden border border-stone-100">
-                <div class="p-5 border-b border-stone-100 bg-stone-50/50">
+            <div class="flex-1 bg-white rounded-xl shadow-sm flex flex-col border border-stone-100 min-h-[400px] lg:min-h-0 overflow-hidden shrink-0 lg:shrink">
+                <div class="p-4 border-b border-stone-100 bg-stone-50/50">
                     <h3 class="font-bold text-lg text-stone-800">Daftar Menu</h3>
                 </div>
-                <div class="p-5 flex-1 overflow-y-auto">
-                    <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div class="p-4 flex-1 overflow-y-auto">
+                    <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
                         <!-- Menu items render here -->
                     </div>
                 </div>
             </div>
             
             <!-- Cart Sidebar -->
-            <div class="w-96 bg-white rounded-xl shadow-sm flex flex-col border border-stone-100">
-                <div class="p-5 border-b border-stone-100 bg-stone-50/50">
+            <div class="w-full lg:w-[400px] bg-white rounded-xl shadow-sm flex flex-col border border-stone-100 shrink-0 h-fit lg:h-full">
+                <div class="p-4 border-b border-stone-100 bg-stone-50/50">
                     <h3 class="font-bold text-lg text-stone-800">Pesanan Saat Ini</h3>
                 </div>
-                <div id="cart-list" class="flex-1 p-5 overflow-y-auto space-y-4">
+                <div id="cart-list" class="flex-1 p-4 overflow-y-auto space-y-3 min-h-[200px] max-h-[40vh] lg:max-h-none">
                     <!-- Cart items render here -->
                 </div>
                 
-                <div class="p-5 border-t border-stone-100 bg-stone-50 space-y-4">
-                    
+                <div class="p-4 border-t border-stone-100 bg-stone-50 space-y-4">
                     <div>
                         <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Catatan Tambahan</label>
                         <textarea id="order-notes" rows="2" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-[#D97757] focus:border-[#D97757] resize-none placeholder-stone-400" placeholder="Contoh: Jangan terlalu pedas, bungkus terpisah..."></textarea>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Tipe Pesanan</label>
-                        <div class="flex gap-2">
-                            <button id="btn-dinein" onclick="setOrderType('Dine In')" class="flex-1 py-2 border-2 border-[#D97757] bg-orange-50 text-[#D97757] font-bold rounded-lg transition">Dine In</button>
-                            <button id="btn-takeaway" onclick="setOrderType('Takeaway')" class="flex-1 py-2 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100">Takeaway</button>
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Tipe Pesanan</label>
+                            <div class="flex gap-1">
+                                <button id="btn-dinein" onclick="setOrderType('Dine In')" class="flex-1 py-1.5 border-2 border-[#D97757] bg-orange-50 text-[#D97757] font-bold rounded-lg transition text-sm">Dine In</button>
+                                <button id="btn-takeaway" onclick="setOrderType('Takeaway')" class="flex-1 py-1.5 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100 text-sm">Takeaway</button>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Status Pembayaran</label>
+                            <div class="flex gap-1">
+                                <button id="btn-berhasil" onclick="setOrderStatus('Berhasil')" class="flex-1 py-1.5 border-2 border-green-500 bg-green-50 text-green-700 font-bold rounded-lg transition text-sm">Berhasil</button>
+                                <button id="btn-gagal" onclick="setOrderStatus('Gagal')" class="flex-1 py-1.5 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100 text-sm">Gagal</button>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Status Pembayaran</label>
-                        <div class="flex gap-2">
-                            <button id="btn-berhasil" onclick="setOrderStatus('Berhasil')" class="flex-1 py-2 border-2 border-green-500 bg-green-50 text-green-700 font-bold rounded-lg transition">Berhasil</button>
-                            <button id="btn-gagal" onclick="setOrderStatus('Gagal')" class="flex-1 py-2 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100">Gagal</button>
-                        </div>
-                    </div>
-                    <div class="flex justify-between font-bold text-xl text-stone-800 pt-3 border-t border-stone-200">
+
+                    <div class="flex justify-between items-center font-bold text-xl text-stone-800 pt-3 border-t border-stone-200">
                         <span>Total Bayar:</span>
-                        <span id="cart-total" class="text-[#D97757]">Rp 0</span>
+                        <span id="cart-total" class="text-[#D97757] text-2xl">Rp 0</span>
                     </div>
                     <button onclick="checkout()" id="btn-checkout" class="w-full bg-[#D97757] text-white py-4 rounded-xl font-bold text-lg shadow-md hover:bg-[#C26243] hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
                         Selesaikan Pesanan
@@ -106,10 +120,10 @@
         </div>
 
         <!-- VIEW: MANAJEMEN MENU -->
-        <div id="view-menu" class="flex-1 p-8 overflow-y-auto hidden">
+        <div id="view-menu" class="flex-1 p-4 lg:p-8 overflow-y-auto hidden">
             <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-6">
                 <!-- Tambah Produk Baru -->
-                <div class="w-full md:w-1/3 bg-white p-6 rounded-xl shadow-sm border border-stone-200 h-fit">
+                <div class="w-full md:w-1/3 bg-white p-5 lg:p-6 rounded-xl shadow-sm border border-stone-200 h-fit shrink-0">
                     <h3 class="font-bold text-lg text-stone-800 mb-4">Tambah Menu Baru</h3>
                     <form id="form-add-product" onsubmit="event.preventDefault(); submitAddProduct();" class="space-y-4">
                         <div>
@@ -123,13 +137,15 @@
                                 <option value="Minuman">Minuman</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-stone-600 mb-1">Harga (Rp)</label>
-                            <input type="number" id="add-price" required min="1000" class="w-full border border-stone-300 rounded-lg px-4 py-2 focus:ring-[#D97757] focus:border-[#D97757]">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-stone-600 mb-1">Stok Awal</label>
-                            <input type="number" id="add-stock" required min="1" class="w-full border border-stone-300 rounded-lg px-4 py-2 focus:ring-[#D97757] focus:border-[#D97757]">
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-stone-600 mb-1">Harga (Rp)</label>
+                                <input type="number" id="add-price" required min="1000" class="w-full border border-stone-300 rounded-lg px-4 py-2 focus:ring-[#D97757] focus:border-[#D97757]">
+                            </div>
+                            <div class="w-24">
+                                <label class="block text-sm font-medium text-stone-600 mb-1">Stok</label>
+                                <input type="number" id="add-stock" required min="1" class="w-full border border-stone-300 rounded-lg px-4 py-2 focus:ring-[#D97757] focus:border-[#D97757]">
+                            </div>
                         </div>
                         <button type="submit" class="w-full bg-[#D97757] text-white font-bold py-3 rounded-lg hover:bg-[#C26243] transition shadow mt-2">
                             Simpan Menu
@@ -139,83 +155,87 @@
 
                 <!-- Tabel Produk -->
                 <div class="w-full md:w-2/3 bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
-                    <div class="p-5 border-b border-stone-100 bg-stone-50">
+                    <div class="p-4 border-b border-stone-100 bg-stone-50">
                         <h3 class="font-bold text-stone-700">Daftar Menu Tersedia</h3>
                     </div>
-                    <table class="min-w-full">
-                        <thead class="bg-white border-b border-stone-200">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Nama Menu</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Kategori</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Harga</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Stok</th>
-                            </tr>
-                        </thead>
-                        <tbody id="menu-table-list" class="divide-y divide-stone-100">
-                            <!-- Table list renders here -->
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-white border-b border-stone-200">
+                                <tr>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Nama Menu</th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Kategori</th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Harga</th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Stok</th>
+                                </tr>
+                            </thead>
+                            <tbody id="menu-table-list" class="divide-y divide-stone-100">
+                                <!-- Table list renders here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- VIEW: KEUANGAN -->
-        <div id="view-finance" class="flex-1 p-8 overflow-y-auto hidden">
+        <div id="view-finance" class="flex-1 p-4 lg:p-8 overflow-y-auto hidden">
             <div class="max-w-6xl mx-auto">
-                <h2 class="text-3xl font-bold mb-8 text-stone-800">Laporan Keuangan</h2>
+                <h2 class="text-2xl lg:text-3xl font-bold mb-6 text-stone-800">Laporan Keuangan</h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-gradient-to-br from-[#D97757] to-[#B05B3D] text-white p-6 rounded-xl shadow-lg">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 mb-8">
+                    <div class="bg-gradient-to-br from-[#D97757] to-[#B05B3D] text-white p-5 lg:p-6 rounded-xl shadow-lg">
                         <p class="text-sm font-medium opacity-90 mb-1">Total Pendapatan Bersih (Berhasil)</p>
-                        <h3 id="finance-total" class="text-4xl font-bold">Rp 0</h3>
+                        <h3 id="finance-total" class="text-3xl lg:text-4xl font-bold truncate">Rp 0</h3>
                     </div>
-                    <div class="bg-white border border-stone-200 p-6 rounded-xl shadow-sm flex items-center">
+                    <div class="bg-white border border-stone-200 p-5 lg:p-6 rounded-xl shadow-sm flex items-center">
                         <div>
                             <p class="text-sm font-medium text-stone-500 mb-1">Total Transaksi Berhasil</p>
-                            <h3 id="finance-count" class="text-4xl font-bold text-stone-800">0 <span class="text-lg font-normal text-stone-500">kali</span></h3>
+                            <h3 id="finance-count" class="text-3xl lg:text-4xl font-bold text-stone-800">0 <span class="text-base lg:text-lg font-normal text-stone-500">kali</span></h3>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-stone-200">
-                    <div class="p-5 border-b border-stone-100 bg-stone-50">
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                    <div class="p-4 border-b border-stone-100 bg-stone-50">
                         <h3 class="font-bold text-stone-700">Riwayat Transaksi Terbaru</h3>
                     </div>
-                    <table class="min-w-full">
-                        <thead class="bg-white border-b border-stone-200">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Tanggal</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Tipe</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Status</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Detail</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Catatan</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-stone-500 uppercase">Total (Rp)</th>
-                                <th class="px-6 py-4 text-center text-xs font-semibold text-stone-500 uppercase">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="finance-list" class="divide-y divide-stone-100">
-                            <!-- Finance list renders here -->
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-white border-b border-stone-200">
+                                <tr>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Tanggal</th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Tipe</th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Status</th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Detail</th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Catatan</th>
+                                    <th class="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Total (Rp)</th>
+                                    <th class="px-4 lg:px-6 py-3 text-center text-xs font-semibold text-stone-500 uppercase whitespace-nowrap">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="finance-list" class="divide-y divide-stone-100">
+                                <!-- Finance list renders here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- VIEW: AI -->
-        <div id="view-ai" class="flex-1 p-8 flex flex-col hidden h-full items-center">
+        <div id="view-ai" class="flex-1 p-4 lg:p-8 flex flex-col hidden h-full items-center">
             <div class="w-full max-w-3xl flex-1 flex flex-col bg-white rounded-2xl shadow-lg border border-stone-100 overflow-hidden">
-                <div class="p-5 bg-gradient-to-r from-[#D97757] to-[#B05B3D] text-white flex items-center gap-3">
-                    <i class="fas fa-robot text-2xl"></i>
+                <div class="p-4 lg:p-5 bg-gradient-to-r from-[#D97757] to-[#B05B3D] text-white flex items-center gap-3 shrink-0">
+                    <i class="fas fa-robot text-xl lg:text-2xl"></i>
                     <div>
-                        <h3 class="font-bold text-lg">AI Assistant Cafe</h3>
-                        <p class="text-xs opacity-90">Terhubung dengan data langsung</p>
+                        <h3 class="font-bold text-base lg:text-lg">AI Assistant Cafe</h3>
+                        <p class="text-[10px] lg:text-xs opacity-90">Terhubung dengan database</p>
                     </div>
                 </div>
                 
-                <div id="chat-box" class="flex-1 p-6 overflow-y-auto space-y-6 bg-stone-50">
-                    <div class="flex gap-4">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#D97757] shrink-0 shadow-sm"><i class="fas fa-robot"></i></div>
-                        <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm text-stone-700 leading-relaxed border border-stone-100">
+                <div id="chat-box" class="flex-1 p-4 lg:p-6 overflow-y-auto space-y-4 lg:space-y-6 bg-stone-50">
+                    <div class="flex gap-3 lg:gap-4">
+                        <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#D97757] shrink-0 shadow-sm"><i class="fas fa-robot"></i></div>
+                        <div class="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-sm text-stone-700 leading-relaxed border border-stone-100 text-sm lg:text-base">
                             Halo! Saya AI asisten internal Cafe kita. Saya bisa membaca data secara langsung dari database.<br><br>
                             Silakan tanya saya tentang:<br>
                             👉 <i>"Gimana penjualan kita sejauh ini?"</i><br>
@@ -225,9 +245,9 @@
                     </div>
                 </div>
                 
-                <div class="p-4 bg-white border-t border-stone-100 flex gap-3 items-center">
-                    <input type="text" id="ai-input" placeholder="Tanya sesuatu ke AI..." class="flex-1 border border-stone-300 rounded-full px-5 py-3 focus:outline-none focus:border-[#D97757] focus:ring-1 focus:ring-[#D97757] bg-stone-50" onkeypress="if(event.key === 'Enter') sendAI()">
-                    <button onclick="sendAI()" class="bg-[#D97757] text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-[#C26243] shadow-md hover:shadow-lg transition">
+                <div class="p-3 lg:p-4 bg-white border-t border-stone-100 flex gap-2 lg:gap-3 items-center shrink-0">
+                    <input type="text" id="ai-input" placeholder="Tanya sesuatu..." class="flex-1 border border-stone-300 rounded-full px-4 py-2 lg:px-5 lg:py-3 text-sm lg:text-base focus:outline-none focus:border-[#D97757] focus:ring-1 focus:ring-[#D97757] bg-stone-50" onkeypress="if(event.key === 'Enter') sendAI()">
+                    <button onclick="sendAI()" class="bg-[#D97757] text-white w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center hover:bg-[#C26243] shadow-md transition shrink-0">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
@@ -236,9 +256,48 @@
 
     </div>
 
+    <!-- STRUK PDF TEMPLATE (HIDDEN OFFSCREEN) -->
+    <div style="position: absolute; left: -9999px; top: -9999px;">
+        <div id="receipt-box" class="bg-white text-black p-6 w-[80mm] font-mono text-[12px] leading-snug">
+            <div class="text-center mb-4">
+                <h2 class="text-xl font-bold mb-1">POS CAFE</h2>
+                <p class="text-stone-600 mb-2">Jl. Teknologi No. 1</p>
+                <div class="border-b border-dashed border-stone-400"></div>
+            </div>
+            <div class="mb-3 space-y-1">
+                <p>No     : <span id="r-txid" class="font-bold"></span></p>
+                <p>Tanggal: <span id="r-date"></span></p>
+                <p>Tipe   : <span id="r-type"></span></p>
+                <p>Status : <span id="r-status"></span></p>
+            </div>
+            <div class="border-b border-dashed border-stone-400 mb-3"></div>
+            
+            <div id="r-items" class="mb-3 space-y-2">
+                <!-- Items akan diinject di sini -->
+            </div>
+            
+            <div class="border-t border-dashed border-stone-400 mt-2 pt-3">
+                <div class="flex justify-between font-bold text-base">
+                    <span>TOTAL</span>
+                    <span id="r-total"></span>
+                </div>
+            </div>
+            
+            <div id="r-notes-container" class="mt-3 hidden bg-stone-100 p-2 rounded">
+                <p class="font-bold">Catatan:</p>
+                <p id="r-notes" class="italic"></p>
+            </div>
+
+            <div class="mt-6 text-center text-stone-500">
+                <p>Terima Kasih!</p>
+                <p>Silakan Datang Kembali</p>
+            </div>
+        </div>
+    </div>
+
     <!-- LOGIC JS -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbz1RVvVUozlbnie5yBD9on5xJVhfUQKk5SlLorA0nNyhcJjWWFGAdhNG6CyGY97-pMM/exec"; // Masukkan URL hasil deploy web app di sini
+        const API_URL = "https://script.google.com/macros/s/AKfycbyoH8z6qedjMOpgVvYKjnU9DRKWiTIY2RUqIJyX5xFl8rOUeHnXFSWmEM55VbsqF9eZ/exec"; // Masukkan URL hasil deploy web app di sini
         let products = [];
         let cart = [];
         let currentOrderType = 'Dine In';
@@ -300,18 +359,18 @@
             grid.innerHTML = '';
             products.forEach(p => {
                 const outOfStock = p.stock <= 0;
-                const icon = p.category === 'Makanan' ? 'fa-hamburger' : 'fa-coffee';
+                const iconClass = p.category === 'Makanan' ? 'fa-hamburger text-amber-500' : 'fa-coffee text-stone-500';
                 
                 grid.innerHTML += `
                     <button onclick="addToCart('${p.id}')" ${outOfStock ? 'disabled' : ''} 
-                        class="p-4 rounded-xl border border-stone-200 bg-white shadow-sm hover:border-[#D97757] hover:shadow-md transition flex flex-col items-center ${outOfStock ? 'opacity-50 cursor-not-allowed bg-stone-50' : ''}">
-                        <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-[#D97757] mb-3">
-                            <i class="fas ${icon} text-xl"></i>
+                        class="p-3 rounded-xl border border-stone-200 bg-white shadow-sm hover:border-[#D97757] hover:shadow-md transition flex flex-col items-center ${outOfStock ? 'opacity-50 cursor-not-allowed bg-stone-50' : ''}">
+                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-orange-50 rounded-full flex items-center justify-center mb-2">
+                            <i class="fas ${iconClass} text-lg lg:text-xl"></i>
                         </div>
-                        <span class="font-bold text-stone-800 text-center leading-tight h-10 flex items-center">${p.name}</span>
-                        <span class="text-xs text-stone-400 mt-1">${p.category}</span>
-                        <span class="text-[#D97757] font-bold mt-2">${formatRp(p.price)}</span>
-                        <span class="text-xs font-medium text-stone-500 mt-2 bg-stone-100 px-3 py-1 rounded-full border border-stone-200">Stok: ${p.stock}</span>
+                        <span class="font-bold text-stone-800 text-center leading-tight h-10 flex items-center text-xs lg:text-sm">${p.name}</span>
+                        <span class="text-[10px] lg:text-xs text-stone-400 mt-1">${p.category}</span>
+                        <span class="text-[#D97757] font-bold mt-1 text-sm lg:text-base">${formatRp(p.price)}</span>
+                        <span class="text-[10px] font-medium text-stone-500 mt-2 bg-stone-100 px-2 py-0.5 rounded-full border border-stone-200">Stok: ${p.stock}</span>
                     </button>
                 `;
             });
@@ -353,23 +412,23 @@
             if (cart.length === 0) {
                 list.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full text-stone-400 opacity-70">
-                        <i class="fas fa-shopping-basket text-4xl mb-3"></i>
-                        <p>Keranjang masih kosong</p>
+                        <i class="fas fa-shopping-basket text-3xl lg:text-4xl mb-3"></i>
+                        <p class="text-sm">Keranjang masih kosong</p>
                     </div>`;
             }
 
             cart.forEach(c => {
                 total += c.price * c.qty;
                 list.innerHTML += `
-                    <div class="flex justify-between items-center border border-stone-100 p-3 rounded-lg shadow-sm">
+                    <div class="flex justify-between items-center border border-stone-100 p-2 lg:p-3 rounded-lg shadow-sm">
                         <div class="flex-1">
-                            <div class="font-bold text-stone-800">${c.name}</div>
-                            <div class="text-sm text-[#D97757] font-semibold">${formatRp(c.price)}</div>
+                            <div class="font-bold text-stone-800 text-sm">${c.name}</div>
+                            <div class="text-xs text-[#D97757] font-semibold">${formatRp(c.price)}</div>
                         </div>
-                        <div class="flex items-center gap-3 bg-stone-50 rounded-lg p-1">
-                            <button onclick="updateQty('${c.id}', -1)" class="w-8 h-8 bg-white rounded-md shadow-sm border border-stone-200 hover:text-red-500 font-bold">-</button>
-                            <span class="w-6 text-center font-bold text-stone-800">${c.qty}</span>
-                            <button onclick="updateQty('${c.id}', 1)" class="w-8 h-8 bg-white rounded-md shadow-sm border border-stone-200 hover:text-[#D97757] font-bold">+</button>
+                        <div class="flex items-center gap-2 bg-stone-50 rounded-lg p-1">
+                            <button onclick="updateQty('${c.id}', -1)" class="w-7 h-7 bg-white rounded-md shadow-sm border border-stone-200 hover:text-red-500 font-bold">-</button>
+                            <span class="w-5 text-center font-bold text-stone-800 text-sm">${c.qty}</span>
+                            <button onclick="updateQty('${c.id}', 1)" class="w-7 h-7 bg-white rounded-md shadow-sm border border-stone-200 hover:text-[#D97757] font-bold">+</button>
                         </div>
                     </div>
                 `;
@@ -384,11 +443,11 @@
             const btnDineIn = document.getElementById('btn-dinein');
             const btnTakeaway = document.getElementById('btn-takeaway');
             if (type === 'Dine In') {
-                btnDineIn.className = "flex-1 py-2 border-2 border-[#D97757] bg-orange-50 text-[#D97757] font-bold rounded-lg transition";
-                btnTakeaway.className = "flex-1 py-2 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100";
+                btnDineIn.className = "flex-1 py-1.5 border-2 border-[#D97757] bg-orange-50 text-[#D97757] font-bold rounded-lg transition text-sm";
+                btnTakeaway.className = "flex-1 py-1.5 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100 text-sm";
             } else {
-                btnTakeaway.className = "flex-1 py-2 border-2 border-[#D97757] bg-orange-50 text-[#D97757] font-bold rounded-lg transition";
-                btnDineIn.className = "flex-1 py-2 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100";
+                btnTakeaway.className = "flex-1 py-1.5 border-2 border-[#D97757] bg-orange-50 text-[#D97757] font-bold rounded-lg transition text-sm";
+                btnDineIn.className = "flex-1 py-1.5 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100 text-sm";
             }
         }
 
@@ -397,11 +456,11 @@
             const btnBerhasil = document.getElementById('btn-berhasil');
             const btnGagal = document.getElementById('btn-gagal');
             if (status === 'Berhasil') {
-                btnBerhasil.className = "flex-1 py-2 border-2 border-green-500 bg-green-50 text-green-700 font-bold rounded-lg transition";
-                btnGagal.className = "flex-1 py-2 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100";
+                btnBerhasil.className = "flex-1 py-1.5 border-2 border-green-500 bg-green-50 text-green-700 font-bold rounded-lg transition text-sm";
+                btnGagal.className = "flex-1 py-1.5 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100 text-sm";
             } else {
-                btnGagal.className = "flex-1 py-2 border-2 border-red-500 bg-red-50 text-red-700 font-bold rounded-lg transition";
-                btnBerhasil.className = "flex-1 py-2 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100";
+                btnGagal.className = "flex-1 py-1.5 border-2 border-red-500 bg-red-50 text-red-700 font-bold rounded-lg transition text-sm";
+                btnBerhasil.className = "flex-1 py-1.5 border-2 border-stone-200 text-stone-500 font-bold rounded-lg transition hover:bg-stone-100 text-sm";
             }
         }
 
@@ -420,13 +479,67 @@
             });
 
             if (res && res.success) {
-                alert(`Pesanan Disimpan dengan Status: ${currentOrderStatus}`);
+                const txData = res.success; // Berisi { txId, date }
+                
+                // Beri alert konfirmasi
+                alert(`Pesanan Disimpan!\nStatus: ${currentOrderStatus}\nStruk sedang di-download...`);
+                
+                // Generate & Download PDF
+                generatePDF(txData.txId, txData.date, currentOrderType, currentOrderStatus, notes, cart, total);
+
+                // Reset Form & Cart
                 cart = [];
                 document.getElementById('order-notes').value = '';
                 renderCart();
                 loadProducts();
             }
             showLoader(false);
+        }
+
+        function generatePDF(txId, date, type, status, notes, cartData, total) {
+            // Fill data ke Template HTML
+            document.getElementById('r-txid').innerText = txId;
+            document.getElementById('r-date').innerText = date;
+            document.getElementById('r-type').innerText = type;
+            document.getElementById('r-status').innerText = status;
+            
+            const rNotesContainer = document.getElementById('r-notes-container');
+            if (notes) {
+                document.getElementById('r-notes').innerText = notes;
+                rNotesContainer.classList.remove('hidden');
+            } else {
+                rNotesContainer.classList.add('hidden');
+            }
+
+            document.getElementById('r-total').innerText = formatRp(total);
+
+            const rItems = document.getElementById('r-items');
+            rItems.innerHTML = '';
+            cartData.forEach(c => {
+                rItems.innerHTML += `
+                    <div class="flex justify-between">
+                        <div class="flex-1 pr-2">
+                            <div class="font-bold">${c.name}</div>
+                            <div class="text-[10px] text-stone-500">${c.qty} x ${formatRp(c.price)}</div>
+                        </div>
+                        <div class="font-bold whitespace-nowrap text-right flex items-end">${formatRp(c.qty * c.price)}</div>
+                    </div>
+                `;
+            });
+
+            // Opsi HTML2PDF
+            const element = document.getElementById('receipt-box');
+            const opt = {
+                margin:       [0, 0, 0, 0],
+                filename:     `Struk_${txId}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 3, useCORS: true },
+                jsPDF:        { unit: 'mm', format: [80, 200], orientation: 'portrait' } 
+                // Format panjang roll paper 80mm
+            };
+
+            // Jalankan
+            html2pdf().set(opt).from(element).save();
         }
 
         // ==========================================
@@ -445,12 +558,12 @@
                 const iconClass = p.category === 'Makanan' ? 'fa-hamburger text-amber-500' : 'fa-coffee text-stone-500';
                 list.innerHTML += `
                     <tr class="hover:bg-stone-50 transition border-b border-stone-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-stone-700">
-                            <i class="fas ${iconClass} mr-3 w-4 text-center"></i>${p.name}
+                        <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-bold text-stone-700">
+                            <i class="fas ${iconClass} mr-2 lg:mr-3 w-4 text-center"></i>${p.name}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">${p.category}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[#D97757] font-semibold">${formatRp(p.price)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">${p.stock}</td>
+                        <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-stone-500">${p.category}</td>
+                        <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-[#D97757] font-semibold">${formatRp(p.price)}</td>
+                        <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-stone-500">${p.stock}</td>
                     </tr>
                 `;
             });
@@ -497,20 +610,20 @@
                 data.list.forEach(tx => {
                     const statusClass = tx.status === 'Berhasil' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200';
                     const actionBtn = tx.status === 'Berhasil' 
-                        ? `<button onclick="changeStatus('${tx.id}', 'Gagal')" class="text-xs bg-stone-200 hover:bg-red-500 hover:text-white text-stone-600 px-3 py-1.5 rounded-md font-medium transition shadow-sm">Ubah ke Gagal (Refund)</button>` 
-                        : `<span class="text-xs text-stone-400 font-medium">Dibatalkan</span>`;
+                        ? `<button onclick="changeStatus('${tx.id}', 'Gagal')" class="text-[10px] lg:text-xs bg-stone-200 hover:bg-red-500 hover:text-white text-stone-600 px-2 lg:px-3 py-1.5 rounded-md font-medium transition shadow-sm">Refund / Gagal</button>` 
+                        : `<span class="text-[10px] lg:text-xs text-stone-400 font-medium">Dibatalkan</span>`;
 
                     list.innerHTML += `
                         <tr class="hover:bg-stone-50 transition border-b border-stone-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-500">${tx.date}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-stone-700">${tx.type}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2.5 py-1 rounded-full text-xs font-bold border ${statusClass}">${tx.status}</span>
+                            <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-xs lg:text-sm text-stone-500">${tx.date}</td>
+                            <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-xs lg:text-sm font-bold text-stone-700">${tx.type}</td>
+                            <td class="px-4 lg:px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 lg:px-2.5 py-1 rounded-full text-[10px] lg:text-xs font-bold border ${statusClass}">${tx.status}</span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-stone-500 leading-relaxed max-w-[200px] truncate" title="${tx.items}">${tx.items}</td>
-                            <td class="px-6 py-4 text-sm text-stone-500 leading-relaxed max-w-[150px] truncate" title="${tx.notes}">${tx.notes}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-base font-bold text-stone-800">${formatRp(tx.total)}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">${actionBtn}</td>
+                            <td class="px-4 lg:px-6 py-4 text-xs lg:text-sm text-stone-500 leading-relaxed max-w-[150px] lg:max-w-[200px] truncate" title="${tx.items}">${tx.items}</td>
+                            <td class="px-4 lg:px-6 py-4 text-xs lg:text-sm text-stone-500 leading-relaxed max-w-[100px] lg:max-w-[150px] truncate" title="${tx.notes}">${tx.notes}</td>
+                            <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm lg:text-base font-bold text-stone-800">${formatRp(tx.total)}</td>
+                            <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-center">${actionBtn}</td>
                         </tr>
                     `;
                 });
@@ -545,9 +658,9 @@
             const typingId = 'typing-' + Date.now();
             
             chatBox.innerHTML += `
-                <div id="${typingId}" class="flex gap-4">
-                    <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#D97757] shrink-0"><i class="fas fa-robot"></i></div>
-                    <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm text-stone-400 text-sm border border-stone-100">
+                <div id="${typingId}" class="flex gap-3 lg:gap-4">
+                    <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#D97757] shrink-0"><i class="fas fa-robot"></i></div>
+                    <div class="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-sm text-stone-400 text-xs lg:text-sm border border-stone-100">
                         <i class="fas fa-circle-notch fa-spin mr-2"></i> Sedang membaca data dari Google Sheets...
                     </div>
                 </div>
@@ -568,16 +681,16 @@
             const box = document.getElementById('chat-box');
             if (role === 'user') {
                 box.innerHTML += `
-                    <div class="flex gap-4 justify-end">
-                        <div class="bg-[#D97757] text-white p-4 rounded-2xl rounded-tr-none shadow-sm max-w-[80%] whitespace-pre-line leading-relaxed">${text}</div>
-                        <div class="w-10 h-10 rounded-full bg-stone-200 flex items-center justify-center text-stone-600 shrink-0"><i class="fas fa-user"></i></div>
+                    <div class="flex gap-3 lg:gap-4 justify-end">
+                        <div class="bg-[#D97757] text-white p-3 lg:p-4 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] lg:max-w-[80%] whitespace-pre-line leading-relaxed text-sm lg:text-base">${text}</div>
+                        <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-stone-200 flex items-center justify-center text-stone-600 shrink-0"><i class="fas fa-user"></i></div>
                     </div>
                 `;
             } else {
                 box.innerHTML += `
-                    <div class="flex gap-4">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#D97757] shrink-0 shadow-sm"><i class="fas fa-robot"></i></div>
-                        <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[80%] text-stone-700 whitespace-pre-line leading-relaxed border border-stone-100">${text}</div>
+                    <div class="flex gap-3 lg:gap-4">
+                        <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#D97757] shrink-0 shadow-sm"><i class="fas fa-robot"></i></div>
+                        <div class="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] lg:max-w-[80%] text-stone-700 whitespace-pre-line leading-relaxed border border-stone-100 text-sm lg:text-base">${text}</div>
                     </div>
                 `;
             }
