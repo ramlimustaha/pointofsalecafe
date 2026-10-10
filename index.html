@@ -406,6 +406,25 @@
         </div>
     </div>
 
+    <!-- NOTIFICATION SYSTEM -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[200] flex flex-col gap-2 w-full max-w-sm pointer-events-none px-4 md:px-0"></div>
+
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-[200] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl flex flex-col overflow-hidden transform scale-95 transition-transform duration-200" id="confirm-modal-box">
+            <div class="p-6 flex flex-col items-center text-center">
+                <div id="confirm-icon" class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-4 shadow-sm border border-red-100">
+                    <i class="fas fa-exclamation-triangle text-2xl"></i>
+                </div>
+                <h3 id="confirm-title" class="font-bold text-xl text-stone-800 mb-2">Konfirmasi</h3>
+                <p id="confirm-message" class="text-sm text-stone-500 mb-6 leading-relaxed">Apakah Anda yakin?</p>
+                <div class="flex w-full gap-3">
+                    <button id="confirm-btn-cancel" class="flex-1 py-2.5 rounded-xl font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition">Batal</button>
+                    <button id="confirm-btn-ok" class="flex-1 py-2.5 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition shadow-md">Ya, Lanjutkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- LOGIC JS -->
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxbWD5L9SfXLbSZeSyi7XhkFVKDB_CCAHUdu6fgIueZWUe-FIpUXgCENGuggArzUBOg/exec"; // Masukkan URL hasil deploy web app di sini
@@ -418,7 +437,114 @@
         let financeDataCache = []; // untuk menyimpan referensi saat klik refund
 
         // ==========================================
-        // 0. AUTH & SETUP LOGIC
+        // 0. NOTIFICATION SYSTEM
+        // ==========================================
+        function showToast(type, title, message = '', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-white border-l-4 rounded-lg shadow-lg p-4 flex items-start gap-3 pointer-events-auto transform transition-all duration-300 translate-x-full opacity-0';
+            
+            let icon = ''; let borderClass = ''; let iconClass = '';
+            
+            if (type === 'success') {
+                icon = 'fa-check-circle'; borderClass = 'border-green-500'; iconClass = 'text-green-500';
+            } else if (type === 'error') {
+                icon = 'fa-times-circle'; borderClass = 'border-red-500'; iconClass = 'text-red-500';
+            } else if (type === 'warning') {
+                icon = 'fa-exclamation-triangle'; borderClass = 'border-yellow-500'; iconClass = 'text-yellow-500';
+            } else {
+                icon = 'fa-info-circle'; borderClass = 'border-[#D97757]'; iconClass = 'text-[#D97757]';
+            }
+            
+            toast.classList.add(borderClass);
+            
+            toast.innerHTML = `
+                <i class="fas ${icon} ${iconClass} text-xl mt-0.5 shrink-0"></i>
+                <div class="flex-1">
+                    <h4 class="font-bold text-stone-800 text-sm">${title}</h4>
+                    ${message ? `<p class="text-xs text-stone-500 mt-1 leading-relaxed">${message}</p>` : ''}
+                </div>
+                <button onclick="this.parentElement.style.opacity='0'; setTimeout(()=>this.parentElement.remove(),300)" class="text-stone-400 hover:text-stone-600 shrink-0">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            });
+            
+            if (duration > 0) {
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+        }
+
+        function showConfirmDialog(type, title, message, okText, cancelText, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            const box = document.getElementById('confirm-modal-box');
+            const iconDiv = document.getElementById('confirm-icon');
+            const titleEl = document.getElementById('confirm-title');
+            const msgEl = document.getElementById('confirm-message');
+            const btnOk = document.getElementById('confirm-btn-ok');
+            const btnCancel = document.getElementById('confirm-btn-cancel');
+            
+            let iconHtml = ''; let iconColor = ''; let btnClass = '';
+            
+            if (type === 'danger') {
+                iconHtml = '<i class="fas fa-exclamation-triangle text-3xl"></i>';
+                iconColor = 'bg-red-50 text-red-500 border-red-100';
+                btnClass = 'bg-red-600 hover:bg-red-700';
+            } else if (type === 'warning') {
+                iconHtml = '<i class="fas fa-exclamation-circle text-3xl"></i>';
+                iconColor = 'bg-amber-50 text-amber-500 border-amber-100';
+                btnClass = 'bg-amber-500 hover:bg-amber-600 text-white'; 
+            } else {
+                iconHtml = '<i class="fas fa-question-circle text-3xl"></i>';
+                iconColor = 'bg-stone-100 text-stone-600 border-stone-200';
+                btnClass = 'bg-[#D97757] hover:bg-[#C26243] text-white';
+            }
+            
+            iconDiv.className = `w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-sm border ${iconColor}`;
+            iconDiv.innerHTML = iconHtml;
+            
+            titleEl.innerText = title;
+            msgEl.innerHTML = message;
+            
+            btnOk.className = `flex-1 py-2.5 rounded-xl font-bold transition shadow-md ${btnClass}`;
+            btnOk.innerText = okText;
+            btnCancel.innerText = cancelText;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            requestAnimationFrame(() => box.classList.remove('scale-95'));
+            
+            // Remove previous listeners
+            btnCancel.onclick = null;
+            btnOk.onclick = null;
+
+            const closeModal = () => {
+                box.classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 200);
+            };
+
+            btnCancel.onclick = closeModal;
+            
+            btnOk.onclick = () => {
+                closeModal();
+                if (onConfirm) onConfirm();
+            };
+        }
+
+        // ==========================================
+        // 0.5 AUTH & SETUP LOGIC
         // ==========================================
         function togglePassword(inputId, iconId) {
             const input = document.getElementById(inputId);
@@ -488,7 +614,7 @@
             showLoader(false);
             
             if (res && res.success) {
-                alert('Akun berhasil dibuat. Silakan masuk.');
+                showToast('success', 'Akun Berhasil Dibuat', 'Silakan masuk menggunakan kredensial baru Anda.');
                 document.getElementById('setup-form').reset();
                 checkSetupStatus(); 
             } else if (res && res.error) {
@@ -498,11 +624,12 @@
         }
 
         async function doLogout() {
-            if (!confirm('Anda yakin ingin keluar?')) return;
-            showLoader(true);
-            await fetchAPI('logout', {}, true);
-            showLoader(false);
-            showAuthView();
+            showConfirmDialog('warning', 'Konfirmasi Logout', 'Anda yakin ingin keluar dari sistem POS Cafe?', 'Ya, Keluar', 'Batal', async () => {
+                showLoader(true);
+                await fetchAPI('logout', {}, true);
+                showLoader(false);
+                showAuthView();
+            });
         }
 
         function initApp() {
@@ -528,7 +655,7 @@
 
         async function fetchAPI(action, payload = {}, quiet = false) {
             if (API_URL === "GANTI_DENGAN_URL_WEB_APP_ANDA") {
-                alert("PENTING: Anda harus mengganti API_URL di dalam file index.html dengan URL hasil Deploy Apps Script Anda.");
+                showToast('warning', 'Konfigurasi Diperlukan', 'Ganti API_URL di dalam file index.html dengan URL hasil Deploy Apps Script Anda.', 10000);
                 if(!quiet) showLoader(false);
                 return null;
             }
@@ -547,7 +674,7 @@
                 return json;
             } catch (e) {
                 console.error("Gagal terhubung ke API:", e);
-                if(!quiet) alert("Gagal terhubung ke server. Periksa koneksi atau URL.");
+                if(!quiet) showToast('error', 'Koneksi Gagal', 'Gagal terhubung ke server. Periksa koneksi atau URL.');
                 if(!quiet) showLoader(false);
                 return null;
             }
@@ -630,7 +757,7 @@
             
             if (item) {
                 if (item.qty < p.stock) item.qty++;
-                else alert('Stok produk ini sudah mencapai batas maksimal!');
+                else showToast('warning', 'Stok Maksimal', 'Anda telah mencapai batas maksimal stok produk ini.');
             } else {
                 cart.push({ ...p, qty: 1 });
             }
@@ -730,7 +857,7 @@
                 const txData = res.success; // Berisi { txId, date }
                 
                 // Beri alert konfirmasi
-                alert(`Pesanan Disimpan!\nStatus: ${currentOrderStatus}\nStruk sedang di-download...`);
+                showToast('success', 'Pesanan Disimpan', `Transaksi ${txData.txId} tercatat. Struk sedang disiapkan.`);
                 
                 // Generate & Download PDF
                 generatePDF(txData.txId, txData.date, currentOrderType, currentOrderStatus, notes, cart, total);
@@ -828,11 +955,11 @@
             showLoader(true);
             const res = await fetchAPI('addProduct', { product: product });
             if (res && res.success) {
-                alert('Menu berhasil ditambahkan!');
+                showToast('success', 'Menu Ditambahkan', 'Produk baru telah berhasil disimpan.');
                 document.getElementById('form-add-product').reset();
                 loadProducts();
             } else {
-                alert('Gagal menambahkan menu.');
+                showToast('error', 'Gagal Menambahkan', 'Terjadi kesalahan saat menambahkan menu.');
             }
             showLoader(false);
         }
@@ -932,7 +1059,7 @@
             });
 
             if (!canRefundAny) {
-                alert('Tidak ada item tersisa yang bisa direfund pada transaksi ini.');
+                showToast('warning', 'Refund Selesai', 'Semua item pada transaksi ini telah direfund sebelumnya.');
                 return;
             }
 
@@ -969,7 +1096,7 @@
 
             const isFullRefund = document.getElementById('ref-is-full').checked;
             const reason = document.getElementById('ref-reason').value.trim();
-            if (!reason) { alert('Harap isi alasan refund.'); return; }
+            if (!reason) { showToast('warning', 'Alasan Diperlukan', 'Harap isi alasan refund sebelum memproses.'); return; }
 
             const refundItems = [];
             let isValid = true;
@@ -992,28 +1119,28 @@
                 }
             });
 
-            if (!isValid) { alert('Kuantitas refund tidak valid.'); return; }
-            if (totalRefundQty === 0) { alert('Pilih setidaknya satu item untuk direfund.'); return; }
+            if (!isValid) { showToast('error', 'Kuantitas Tidak Valid', 'Pastikan kuantitas refund benar dan tidak melebihi item tersedia.'); return; }
+            if (totalRefundQty === 0) { showToast('warning', 'Item Kosong', 'Pilih setidaknya satu item yang ingin direfund.'); return; }
 
-            if (!confirm(`Konfirmasi refund untuk ${totalRefundQty} item?`)) return;
+            showConfirmDialog('danger', 'Konfirmasi Refund', `Apakah Anda yakin ingin memproses refund untuk <strong>${totalRefundQty} item</strong>?<br>Tindakan ini tidak dapat dibatalkan.`, 'Ya, Proses Refund', 'Batal', async () => {
+                showLoader(true);
+                const res = await fetchAPI('processRefund', {
+                    txId: currentRefundTx.id,
+                    refundItems: refundItems,
+                    reason: reason,
+                    isFullRefund: isFullRefund
+                });
 
-            showLoader(true);
-            const res = await fetchAPI('processRefund', {
-                txId: currentRefundTx.id,
-                refundItems: refundItems,
-                reason: reason,
-                isFullRefund: isFullRefund
+                if (res && res.success) {
+                    showToast('success', 'Refund Berhasil', 'Proses refund telah selesai dan tercatat.');
+                    closeRefundModal();
+                    loadFinance();
+                    loadProducts(); // update stok terbaru di cache frontend
+                } else if (res && res.error) {
+                    showToast('error', 'Refund Gagal', res.error);
+                }
+                showLoader(false);
             });
-
-            if (res && res.success) {
-                alert('Refund berhasil diproses.');
-                closeRefundModal();
-                loadFinance();
-                loadProducts(); // update stok terbaru di cache frontend
-            } else if (res && res.error) {
-                alert('Error: ' + res.error);
-            }
-            showLoader(false);
         }
 
         // ==========================================
