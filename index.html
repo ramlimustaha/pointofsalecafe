@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POS Cafe Responsive</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Load html2pdf untuk Struk PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Load Marked.js dan DOMPurify untuk merender markdown AI secara aman -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -66,8 +69,19 @@
         <div id="view-pos" class="flex-1 flex flex-col lg:flex-row h-full p-3 lg:p-6 gap-4 lg:gap-6 hidden overflow-y-auto lg:overflow-hidden">
             <!-- Menu Grid -->
             <div class="flex-1 bg-white rounded-xl shadow-sm flex flex-col border border-stone-100 min-h-[400px] lg:min-h-0 overflow-hidden shrink-0 lg:shrink">
-                <div class="p-4 border-b border-stone-100 bg-stone-50/50">
-                    <h3 class="font-bold text-lg text-stone-800">Daftar Menu</h3>
+                <div class="p-4 border-b border-stone-100 bg-stone-50/50 flex flex-col md:flex-row justify-between items-center gap-3">
+                    <h3 class="font-bold text-lg text-stone-800 shrink-0">Daftar Menu</h3>
+                    <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                        <div class="flex bg-stone-200 rounded-lg p-1 shrink-0">
+                            <button onclick="setFilter('Semua')" id="filter-semua" class="px-3 py-1 text-xs md:text-sm font-bold rounded bg-white text-[#D97757] shadow-sm transition">Semua</button>
+                            <button onclick="setFilter('Makanan')" id="filter-makanan" class="px-3 py-1 text-xs md:text-sm font-bold rounded text-stone-500 hover:text-stone-700 transition">Makanan</button>
+                            <button onclick="setFilter('Minuman')" id="filter-minuman" class="px-3 py-1 text-xs md:text-sm font-bold rounded text-stone-500 hover:text-stone-700 transition">Minuman</button>
+                        </div>
+                        <div class="relative w-full md:w-48">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
+                            <input type="text" id="pos-search" onkeyup="searchPOS()" placeholder="Cari menu..." class="w-full pl-8 pr-3 py-1.5 text-sm border border-stone-300 rounded-lg focus:outline-none focus:border-[#D97757]">
+                        </div>
+                    </div>
                 </div>
                 <div class="p-4 flex-1 overflow-y-auto">
                     <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
@@ -235,7 +249,7 @@
                 <div id="chat-box" class="flex-1 p-4 lg:p-6 overflow-y-auto space-y-4 lg:space-y-6 bg-stone-50">
                     <div class="flex gap-3 lg:gap-4">
                         <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#D97757] shrink-0 shadow-sm"><i class="fas fa-robot"></i></div>
-                        <div class="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-sm text-stone-700 leading-relaxed border border-stone-100 text-sm lg:text-base">
+                        <div class="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-sm text-stone-700 border border-stone-100 prose prose-stone prose-sm lg:prose-base max-w-none prose-p:my-1">
                             Halo! Saya AI asisten internal Cafe kita. Saya bisa membaca data secara langsung dari database.<br><br>
                             Silakan tanya saya tentang:<br>
                             👉 <i>"Gimana penjualan kita sejauh ini?"</i><br>
@@ -295,13 +309,53 @@
         </div>
     </div>
 
+    <!-- MODAL REFUND -->
+    <div id="modal-refund" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden max-h-full">
+            <div class="p-5 border-b border-stone-100 bg-red-50 flex justify-between items-center">
+                <h3 class="font-bold text-lg text-red-700">Form Refund Transaksi</h3>
+                <button onclick="closeRefundModal()" class="text-stone-400 hover:text-stone-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto flex-1 space-y-4">
+                <div class="grid grid-cols-2 gap-4 text-sm bg-stone-50 p-3 rounded-lg border border-stone-100">
+                    <div><span class="text-stone-500">No. TX:</span> <br><strong id="ref-txid"></strong></div>
+                    <div><span class="text-stone-500">Tanggal:</span> <br><strong id="ref-txdate"></strong></div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase mb-2">Pilih Item untuk Direfund</label>
+                    <div id="ref-items-container" class="space-y-2 border border-stone-200 rounded-lg p-3 bg-white">
+                        <!-- Checkbox & Qty refund render here -->
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Alasan Refund</label>
+                    <input type="text" id="ref-reason" placeholder="Contoh: Pesanan salah, pelanggan komplain..." class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+                </div>
+                
+                <div class="flex items-center gap-2 bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-sm">
+                    <input type="checkbox" id="ref-is-full" class="w-4 h-4 text-red-600 rounded border-stone-300 focus:ring-red-500" onchange="toggleFullRefund()">
+                    <label for="ref-is-full" class="font-bold text-yellow-800">Batalkan/Refund Keseluruhan Transaksi</label>
+                </div>
+            </div>
+            <div class="p-5 border-t border-stone-100 bg-stone-50 flex justify-end gap-3">
+                <button onclick="closeRefundModal()" class="px-5 py-2 rounded-lg font-bold text-stone-600 bg-stone-200 hover:bg-stone-300 transition">Batal</button>
+                <button onclick="submitRefund()" class="px-5 py-2 rounded-lg font-bold text-white bg-red-600 hover:bg-red-700 transition shadow-md">Proses Refund</button>
+            </div>
+        </div>
+    </div>
+
     <!-- LOGIC JS -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyoH8z6qedjMOpgVvYKjnU9DRKWiTIY2RUqIJyX5xFl8rOUeHnXFSWmEM55VbsqF9eZ/exec"; // Masukkan URL hasil deploy web app di sini
+        const API_URL = "https://script.google.com/macros/s/AKfycbyoS3P7iXdJ3RFCn2cud8qTOZfbZzE8rwx5ZhvO_0UWqXAhvbvbiw1jluKqt0MQqruS/exec"; // Masukkan URL hasil deploy web app di sini
         let products = [];
         let cart = [];
         let currentOrderType = 'Dine In';
         let currentOrderStatus = 'Berhasil';
+        let filterCategory = 'Semua';
+        let searchQuery = '';
+        let financeDataCache = []; // untuk menyimpan referensi saat klik refund
 
         function nav(view) {
             document.getElementById('view-pos').classList.add('hidden');
@@ -311,7 +365,7 @@
             
             document.getElementById('view-' + view).classList.remove('hidden');
 
-            if (view === 'pos') loadProducts();
+            if (view === 'pos') { loadProducts(); setFilter('Semua'); }
             if (view === 'menu') renderMenuTable(); 
             if (view === 'finance') loadFinance();
         }
@@ -353,11 +407,46 @@
             }
             showLoader(false);
         }
+        
+        function setFilter(cat) {
+            filterCategory = cat;
+            ['Semua','Makanan','Minuman'].forEach(c => {
+                const btn = document.getElementById('filter-' + c.toLowerCase());
+                if(btn) {
+                    if (c === cat) {
+                        btn.className = "px-3 py-1 text-xs md:text-sm font-bold rounded bg-white text-[#D97757] shadow-sm transition";
+                    } else {
+                        btn.className = "px-3 py-1 text-xs md:text-sm font-bold rounded text-stone-500 hover:text-stone-700 transition";
+                    }
+                }
+            });
+            renderPOSMenu();
+        }
+        
+        function searchPOS() {
+            searchQuery = document.getElementById('pos-search').value.toLowerCase();
+            renderPOSMenu();
+        }
 
         function renderPOSMenu() {
             const grid = document.getElementById('products-grid');
             grid.innerHTML = '';
-            products.forEach(p => {
+            
+            let filtered = products;
+            
+            if (filterCategory !== 'Semua') {
+                filtered = filtered.filter(p => p.category === filterCategory);
+            }
+            if (searchQuery.trim() !== '') {
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery));
+            }
+            
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center text-stone-400 py-10">Produk tidak ditemukan</div>';
+                return;
+            }
+            
+            filtered.forEach(p => {
                 const outOfStock = p.stock <= 0;
                 const iconClass = p.category === 'Makanan' ? 'fa-hamburger text-amber-500' : 'fa-coffee text-stone-500';
                 
@@ -590,13 +679,15 @@
         }
 
         // ==========================================
-        // 3. KEUANGAN LOGIC
+        // 3. KEUANGAN & REFUND LOGIC
         // ==========================================
         async function loadFinance() {
             showLoader(true);
             const res = await fetchAPI('getFinanceData');
             if (res && res.data) {
                 const data = res.data;
+                financeDataCache = data.list; // simpan referensi
+                
                 document.getElementById('finance-total').innerText = formatRp(data.total);
                 document.getElementById('finance-count').innerHTML = `${data.count} <span class="text-lg font-normal text-stone-500">kali</span>`;
                 
@@ -608,10 +699,19 @@
                 }
 
                 data.list.forEach(tx => {
-                    const statusClass = tx.status === 'Berhasil' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200';
-                    const actionBtn = tx.status === 'Berhasil' 
-                        ? `<button onclick="changeStatus('${tx.id}', 'Gagal')" class="text-[10px] lg:text-xs bg-stone-200 hover:bg-red-500 hover:text-white text-stone-600 px-2 lg:px-3 py-1.5 rounded-md font-medium transition shadow-sm">Refund / Gagal</button>` 
-                        : `<span class="text-[10px] lg:text-xs text-stone-400 font-medium">Dibatalkan</span>`;
+                    let statusClass = 'bg-stone-100 text-stone-600 border-stone-200';
+                    let actionBtn = '';
+                    
+                    if (tx.status === 'Berhasil') {
+                        statusClass = 'bg-green-100 text-green-700 border-green-200';
+                        actionBtn = `<button onclick="openRefundModal('${tx.id}')" class="text-[10px] lg:text-xs bg-stone-200 hover:bg-red-500 hover:text-white text-stone-600 px-2 lg:px-3 py-1.5 rounded-md font-medium transition shadow-sm">Refund</button>`;
+                    } else if (tx.status === 'Refund Sebagian') {
+                        statusClass = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                        actionBtn = `<button onclick="openRefundModal('${tx.id}')" class="text-[10px] lg:text-xs bg-stone-200 hover:bg-yellow-500 hover:text-white text-stone-600 px-2 lg:px-3 py-1.5 rounded-md font-medium transition shadow-sm">Refund Lagi</button>`;
+                    } else if (tx.status === 'Refund Penuh' || tx.status === 'Gagal') {
+                        statusClass = 'bg-red-100 text-red-700 border-red-200';
+                        actionBtn = `<span class="text-[10px] lg:text-xs text-stone-400 font-medium">Selesai</span>`;
+                    }
 
                     list.innerHTML += `
                         <tr class="hover:bg-stone-50 transition border-b border-stone-50">
@@ -620,7 +720,7 @@
                             <td class="px-4 lg:px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 lg:px-2.5 py-1 rounded-full text-[10px] lg:text-xs font-bold border ${statusClass}">${tx.status}</span>
                             </td>
-                            <td class="px-4 lg:px-6 py-4 text-xs lg:text-sm text-stone-500 leading-relaxed max-w-[150px] lg:max-w-[200px] truncate" title="${tx.items}">${tx.items}</td>
+                            <td class="px-4 lg:px-6 py-4 text-xs lg:text-sm text-stone-500 leading-relaxed max-w-[150px] lg:max-w-[200px] truncate" title="${tx.itemsStr}">${tx.itemsStr}</td>
                             <td class="px-4 lg:px-6 py-4 text-xs lg:text-sm text-stone-500 leading-relaxed max-w-[100px] lg:max-w-[150px] truncate" title="${tx.notes}">${tx.notes}</td>
                             <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm lg:text-base font-bold text-stone-800">${formatRp(tx.total)}</td>
                             <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-center">${actionBtn}</td>
@@ -631,14 +731,128 @@
             showLoader(false);
         }
 
-        async function changeStatus(txId, newStatus) {
-            if (!confirm(`Apakah Anda yakin ingin mengubah status pesanan ini menjadi ${newStatus}? Stok produk akan dikembalikan secara otomatis.`)) return;
-            
+        let currentRefundTx = null;
+
+        function openRefundModal(txId) {
+            currentRefundTx = financeDataCache.find(x => x.id === txId);
+            if (!currentRefundTx) return;
+
+            document.getElementById('ref-txid').innerText = currentRefundTx.id;
+            document.getElementById('ref-txdate').innerText = currentRefundTx.date;
+            document.getElementById('ref-reason').value = '';
+            document.getElementById('ref-is-full').checked = false;
+
+            const container = document.getElementById('ref-items-container');
+            container.innerHTML = '';
+
+            let canRefundAny = false;
+
+            currentRefundTx.items.forEach((item, index) => {
+                const maxRefundable = item.qty - item.refundedQty;
+                if (maxRefundable > 0) {
+                    canRefundAny = true;
+                    // Find actual product price from current products array (as a fallback since we didn't save snapshot price properly in this simple version, but assume it's the current price)
+                    const p = products.find(x => x.name === item.name);
+                    const price = p ? p.price : 0; // if product deleted, price 0
+                    
+                    container.innerHTML += `
+                        <div class="flex items-center gap-3 p-2 bg-stone-50 rounded border border-stone-200 ref-item-row">
+                            <input type="checkbox" id="ref-check-${index}" class="w-4 h-4 text-[#D97757] rounded border-stone-300 ref-item-check" data-name="${item.name}" data-price="${price}">
+                            <div class="flex-1">
+                                <label for="ref-check-${index}" class="font-bold text-sm text-stone-800">${item.name}</label>
+                                <div class="text-[10px] text-stone-500">Maks refund: ${maxRefundable} unit</div>
+                            </div>
+                            <input type="number" id="ref-qty-${index}" min="1" max="${maxRefundable}" value="${maxRefundable}" class="w-16 border border-stone-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-[#D97757]">
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" id="ref-restock-${index}" class="w-3 h-3 text-green-600 rounded" checked title="Kembalikan ke stok">
+                                <span class="text-[10px] text-stone-500" title="Kembalikan ke stok">Restock?</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            if (!canRefundAny) {
+                alert('Tidak ada item tersisa yang bisa direfund pada transaksi ini.');
+                return;
+            }
+
+            document.getElementById('modal-refund').classList.remove('hidden');
+            document.getElementById('modal-refund').classList.add('flex');
+        }
+
+        function closeRefundModal() {
+            document.getElementById('modal-refund').classList.add('hidden');
+            document.getElementById('modal-refund').classList.remove('flex');
+            currentRefundTx = null;
+        }
+
+        function toggleFullRefund() {
+            const isFull = document.getElementById('ref-is-full').checked;
+            const rows = document.querySelectorAll('.ref-item-row');
+            rows.forEach(row => {
+                const check = row.querySelector('.ref-item-check');
+                const qtyInput = row.querySelector('input[type="number"]');
+                if (isFull) {
+                    check.checked = true;
+                    check.disabled = true;
+                    qtyInput.value = qtyInput.max;
+                    qtyInput.disabled = true;
+                } else {
+                    check.disabled = false;
+                    qtyInput.disabled = false;
+                }
+            });
+        }
+
+        async function submitRefund() {
+            if (!currentRefundTx) return;
+
+            const isFullRefund = document.getElementById('ref-is-full').checked;
+            const reason = document.getElementById('ref-reason').value.trim();
+            if (!reason) { alert('Harap isi alasan refund.'); return; }
+
+            const refundItems = [];
+            let isValid = true;
+            let totalRefundQty = 0;
+
+            const rows = document.querySelectorAll('.ref-item-row');
+            rows.forEach(row => {
+                const check = row.querySelector('.ref-item-check');
+                if (check.checked) {
+                    const name = check.getAttribute('data-name');
+                    const price = parseInt(check.getAttribute('data-price'));
+                    const qtyInput = row.querySelector('input[type="number"]');
+                    const qty = parseInt(qtyInput.value);
+                    const restock = row.querySelector('input[type="checkbox"][id^="ref-restock"]').checked;
+
+                    if (qty > parseInt(qtyInput.max) || qty <= 0) isValid = false;
+
+                    refundItems.push({ name: name, qty: qty, price: price, restock: restock });
+                    totalRefundQty += qty;
+                }
+            });
+
+            if (!isValid) { alert('Kuantitas refund tidak valid.'); return; }
+            if (totalRefundQty === 0) { alert('Pilih setidaknya satu item untuk direfund.'); return; }
+
+            if (!confirm(`Konfirmasi refund untuk ${totalRefundQty} item?`)) return;
+
             showLoader(true);
-            const res = await fetchAPI('updateStatus', { txId: txId, status: newStatus });
+            const res = await fetchAPI('processRefund', {
+                txId: currentRefundTx.id,
+                refundItems: refundItems,
+                reason: reason,
+                isFullRefund: isFullRefund
+            });
+
             if (res && res.success) {
-                alert('Status pesanan berhasil diubah dan stok telah dikembalikan.');
+                alert('Refund berhasil diproses.');
+                closeRefundModal();
                 loadFinance();
+                loadProducts(); // update stok terbaru di cache frontend
+            } else if (res && res.error) {
+                alert('Error: ' + res.error);
             }
             showLoader(false);
         }
@@ -646,12 +860,15 @@
         // ==========================================
         // 4. AI CHAT LOGIC
         // ==========================================
+        let chatHistory = [];
+
         async function sendAI() {
             const input = document.getElementById('ai-input');
             const msg = input.value.trim();
             if (!msg) return;
 
             appendChat('user', msg);
+            chatHistory.push({ role: 'user', text: msg });
             input.value = '';
             
             const chatBox = document.getElementById('chat-box');
@@ -661,19 +878,21 @@
                 <div id="${typingId}" class="flex gap-3 lg:gap-4">
                     <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#D97757] shrink-0"><i class="fas fa-robot"></i></div>
                     <div class="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-sm text-stone-400 text-xs lg:text-sm border border-stone-100">
-                        <i class="fas fa-circle-notch fa-spin mr-2"></i> Sedang membaca data dari Google Sheets...
+                        <i class="fas fa-circle-notch fa-spin mr-2"></i> Sedang berpikir... (memerlukan waktu beberapa detik)
                     </div>
                 </div>
             `;
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            const res = await fetchAPI('askAI', { msg: msg });
+            const res = await fetchAPI('askAI', { msg: msg, history: chatHistory.slice(0, 10) }); // Kirim maks 10 percakapan terakhir
             document.getElementById(typingId).remove();
             
             if (res && res.reply) {
                 appendChat('ai', res.reply);
+                chatHistory.push({ role: 'model', text: res.reply });
             } else {
-                appendChat('ai', "Maaf, sepertinya saya tidak bisa mengakses data saat ini.");
+                let errorMsg = res && res.error ? res.error : "Maaf, sepertinya saya tidak bisa mengakses layanan AI saat ini.";
+                appendChat('ai', errorMsg);
             }
         }
 
@@ -687,10 +906,12 @@
                     </div>
                 `;
             } else {
+                let htmlContent = marked.parse(text);
+                let cleanHTML = DOMPurify.sanitize(htmlContent);
                 box.innerHTML += `
                     <div class="flex gap-3 lg:gap-4">
                         <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#D97757] shrink-0 shadow-sm"><i class="fas fa-robot"></i></div>
-                        <div class="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] lg:max-w-[80%] text-stone-700 whitespace-pre-line leading-relaxed border border-stone-100 text-sm lg:text-base">${text}</div>
+                        <div class="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%] lg:max-w-[80%] text-stone-700 border border-stone-100 prose prose-stone prose-sm lg:prose-base max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-table:my-2 prose-td:px-3 prose-td:py-1 prose-th:px-3 prose-th:py-2">${cleanHTML}</div>
                     </div>
                 `;
             }
