@@ -576,7 +576,7 @@
         }
 
         function showAuthView() {
-            localStorage.removeItem('pos_token');
+            sessionStorage.removeItem('pos_token');
             checkSetupStatus();
         }
 
@@ -592,13 +592,12 @@
             showLoader(false);
             
             if (res && res.success) {
-                localStorage.setItem('pos_token', res.token);
+                sessionStorage.setItem('pos_token', res.token);
                 document.getElementById('auth-layout').classList.add('hidden');
                 document.getElementById('login-form').reset();
                 initApp();
             } else if (res && res.error) {
-                errDiv.innerText = res.error;
-                errDiv.classList.remove('hidden');
+                showToast('error', 'Login Gagal', res.error);
             }
         }
 
@@ -659,7 +658,7 @@
                 if(!quiet) showLoader(false);
                 return null;
             }
-            const token = localStorage.getItem('pos_token');
+            const token = sessionStorage.getItem('pos_token');
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
@@ -1206,12 +1205,24 @@
 
         // Start View Default
         window.onload = () => {
-            if (localStorage.getItem('pos_token')) {
+            if (sessionStorage.getItem('pos_token')) {
                 initApp();
             } else {
                 showAuthView();
             }
         }
+        
+        // Handle Back-Forward Cache (BFCache)
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                if (!sessionStorage.getItem('pos_token')) {
+                    showAuthView();
+                } else {
+                    // Coba re-validasi token ke backend secara diam-diam
+                    fetchAPI('getProducts', {}, true);
+                }
+            }
+        });
     </script>
 </body>
 </html>
