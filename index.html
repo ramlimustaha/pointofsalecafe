@@ -466,7 +466,7 @@
 
     <!-- LOGIC JS -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxbWD5L9SfXLbSZeSyi7XhkFVKDB_CCAHUdu6fgIueZWUe-FIpUXgCENGuggArzUBOg/exec"; // Masukkan URL hasil deploy web app di sini
+        const API_URL = "https://script.google.com/macros/s/AKfycbxQcAARYH0pcZP_SCwzLkL9WYT6BDOPb65Tf3g_kTHF2LZFKa2-ryIkWUnxcbPT9zIU/exec"; // Masukkan URL hasil deploy web app di sini
         let products = [];
         let cart = [];
         let currentOrderType = 'Dine In';
@@ -698,12 +698,18 @@
                 return null;
             }
             const token = sessionStorage.getItem('pos_token');
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+            
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: action, token: token, ...payload }),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
                 const json = await res.json();
                 if (json && json.error === 'unauthorized' && action !== 'login' && action !== 'checkSetup' && action !== 'setupAccount') {
                     showAuthView();
@@ -711,8 +717,13 @@
                 }
                 return json;
             } catch (e) {
+                clearTimeout(timeoutId);
                 console.error("Gagal terhubung ke API:", e);
-                if(!quiet) showToast('error', 'Koneksi Gagal', 'Gagal terhubung ke server. Periksa koneksi atau URL.');
+                if (e.name === 'AbortError') {
+                    if (!quiet) showToast('error', 'Koneksi Timeout', 'Server terlalu lama merespons. Silakan coba lagi nanti.');
+                } else {
+                    if (!quiet) showToast('error', 'Koneksi Gagal', 'Gagal terhubung ke server. Periksa koneksi atau URL.');
+                }
                 if(!quiet) showLoader(false);
                 return null;
             }
@@ -1211,12 +1222,15 @@
         // 4. AI CHAT LOGIC
         // ==========================================
         let chatHistory = [];
+        let isAILoading = false;
 
         async function sendAI() {
+            if (isAILoading) return;
             const input = document.getElementById('ai-input');
             const msg = input.value.trim();
             if (!msg) return;
 
+            isAILoading = true;
             appendChat('user', msg);
             chatHistory.push({ role: 'user', text: msg });
             input.value = '';
@@ -1228,21 +1242,33 @@
                 <div id="${typingId}" class="flex gap-3 lg:gap-4">
                     <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#D97757] shrink-0"><i class="fas fa-robot"></i></div>
                     <div class="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-sm text-stone-400 text-xs lg:text-sm border border-stone-100">
-                        <i class="fas fa-circle-notch fa-spin mr-2"></i> Sedang berpikir... (memerlukan waktu beberapa detik)
+                        <i class="fas fa-circle-notch fa-spin mr-2"></i> Sedang memproses analisis data...
                     </div>
                 </div>
             `;
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            const res = await fetchAPI('askAI', { msg: msg, history: chatHistory.slice(0, 10) }); // Kirim maks 10 percakapan terakhir
-            document.getElementById(typingId).remove();
-            
-            if (res && res.reply) {
-                appendChat('ai', res.reply);
-                chatHistory.push({ role: 'model', text: res.reply });
-            } else {
-                let errorMsg = res && res.error ? res.error : "Maaf, sepertinya saya tidak bisa mengakses layanan AI saat ini.";
-                appendChat('ai', errorMsg);
+            try {
+                // Timeout di fetchAPI bisa ditambahkan, tapi kita gunakan await normal dengan flag
+                const res = await fetchAPI('askAI', { msg: msg, history: chatHistory.slice(-10) }); // Kirim maks 10 percakapan terakhir
+                
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+                
+                if (res && res.reply) {
+                    appendChat('ai', res.reply);
+                    chatHistory.push({ role: 'model', text: res.reply });
+                } else {
+                    let errorMsg = res && res.error ? res.error : "Maaf, sepertinya saya tidak bisa mengakses layanan AI saat ini.";
+                    appendChat('ai', errorMsg);
+                }
+            } catch (err) {
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+                appendChat('ai', 'Terjadi kesalahan sistem saat mencoba menghubungi asisten.');
+                console.error('AI Error:', err);
+            } finally {
+                isAILoading = false;
             }
         }
 
